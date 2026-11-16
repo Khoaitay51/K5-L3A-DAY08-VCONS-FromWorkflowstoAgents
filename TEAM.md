@@ -4,8 +4,10 @@
 
 - Tên nhóm: VCONS
 - Lớp: L3A
-- Repo nhóm: `K5-L3A-DAY08-TenNhom-FromWorkflowsToAgents` (xem [SUBMISSION.md](SUBMISSION.md))
-- URL repo, nhánh nộp, commit chốt:
+- Repo nhóm: `K5-VCONS-Day8-FromWorkflowstoAgents`
+- URL repo: https://github.com/Khoaitay51/K5-VCONS-Day8-FromWorkflowstoAgents
+- Nhánh nộp: `main`
+- Commit mã nguồn được đánh giá: `231ec5d` (thống nhất với `report/team/decision_adr.md`); commit hoàn tất CP5: `7dd3869`.
 
 ## Thành viên
 
@@ -28,10 +30,10 @@ Gợi ý chia vai:
 
 | Người | Vai | Commit | Test đã thêm hoặc sửa |
 | --- | --- | --- | --- |
-| Nguyễn Văn Huy | Người 2 (Single ReAct) | Cài đặt Shape B (single.py) | src/tests/test_single_extra.py |
-| Nguyễn Minh Quân | Người 1 (Workflow) | Cài đặt Shape A (workflow.py) | src/tests/test_workflow_extra.py |
-| Nguyen Thanh Tung | orchestrator + handoff | `79ba5a9` | `src/tests/test_orchestrator_extra.py` (16 tests), `src/tests/test_public_matrix.py` (62/62 `orchestrator`) |
-| Phạm Trường Chinh | Người 4 (Durability + Eval) | `1e0caa8`, `c2a8edc` | `src/tests/test_durability_eval_extra.py` (43 tests) |
+| Nguyễn Văn Huy | Người 2 (Single ReAct) | `953789f` — triển khai Single ReAct và thêm test | `src/tests/test_single_extra.py::test_single_react_rejects_write_tools_in_worker_mode` |
+| Nguyễn Minh Quân | Người 1 (Workflow) | `841266d` — thêm test Workflow và báo cáo cá nhân | `src/tests/test_workflow_extra.py::test_unknown_claim_returns_failed_with_fresh_trace` |
+| Nguyễn Thanh Tùng | Orchestrator + handoff | `79ba5a9` — triển khai Orchestrator và thêm test | `src/tests/test_orchestrator_extra.py::test_orchestrator_handoff_allowlist_and_readonly_tools` |
+| Phạm Trường Chinh | Người 4 (Durability + Eval) | `1e0caa8` — thêm test durability/eval và báo cáo | `src/tests/test_durability_eval_extra.py::test_t11_idempotency_and_conflict` |
 
 ## Cá nhân
 
