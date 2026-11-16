@@ -1,4 +1,4 @@
-"""Extra test suite for Shape B (Single ReAct Agent) written by Nguyen Van Huy (2A202603423).
+"""Extra test suite for Shape B (Single ReAct Agent) written by Nguyen Van Huy (2A202603432).
 
 Tests:
 1. ReAct tool restrictions: verifies that workers in ReAct cannot execute write tools.
