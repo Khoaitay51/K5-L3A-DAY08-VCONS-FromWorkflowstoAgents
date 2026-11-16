@@ -17,7 +17,7 @@
 - Tính mức bồi thường từ dữ liệu đơn và policy bằng `compute_compensation`. Với quote dương, truyền toàn bộ quote vào `issue_refund` để host kiểm tra approval và trừ khoản đã hoàn trước đó.
 - Ghi trace trên các nhánh trả kết quả, không ghi ticket hay dữ liệu nhạy cảm; truyền `crash_at` cho host để hỗ trợ kiểm thử crash và chạy lại.
 - Thêm `src/tests/test_workflow_extra.py` kiểm tra claim không tồn tại trả `failed`, không có refund và có trace đúng run ID.
-- Commit chính: **chờ bổ sung hash sau khi commit**.
+- Commit chính: 841266d.
 
 ## 4. Bằng chứng
 
@@ -25,7 +25,7 @@
 - Test bổ sung: `src/tests/test_workflow_extra.py::test_unknown_claim_returns_failed_with_fresh_trace` — **1 passed**.
 - Bộ test public Workflow: `python -m pytest -q -m student -o addopts= -k workflow` — lần kiểm tra trước đạt **62 passed**.
 - Smoke và bộ test host đã chạy thành công trong môi trường Python 3.13; kết quả public không thay thế kết quả hidden của giảng viên.
-- Link hoặc hash commit: **chờ bổ sung sau khi commit**.
+- Link hoặc hash commit: https://github.com/Khoaitay51/K5-L3A-DAY08-VCONS-FromWorkflowstoAgents/commit/841266d91893a03bd306b26f63e8b1d2d09da4e5#diff-713b2c84d8d9d713f92c8b02ae9380d5f983075ea644541000588ffeafc76ee8.
 
 ## 5. Công cụ AI đã dùng
 
