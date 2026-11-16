@@ -26,6 +26,7 @@ Gợi ý chia vai:
 | Người | Vai | Commit | Test đã thêm hoặc sửa |
 | --- | --- | --- | --- |
 | Nguyễn Văn Huy | Người 2 (Single ReAct) | Cài đặt Shape B (single.py) | src/tests/test_single_extra.py |
+| Nguyễn Minh Quân | Người 1 (Workflow) | Cài đặt Shape A (workflow.py) | src/tests/test_workflow_extra.py |
 
 ## Cá nhân
 
