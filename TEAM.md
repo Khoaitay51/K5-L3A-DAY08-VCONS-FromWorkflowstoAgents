@@ -14,6 +14,7 @@
 |   1 | Nguyễn Minh Quân | 2A202603510 | 26ai.quannm7@vinuni.edu.vn | minhquan2955 | Shape A - Workflow |
 |   2 | Nguyễn Văn Huy | 2A202603432 | huy.nv2a@vinuni.edu.vn | nvh-03 | Người 2 (Shape B — Single ReAct) |
 |   3 | Nguyễn Thanh Tùng | 2A202603446 | 26ai.tungnt5@vinuni.edu.vn | hunter2996 | Shape C - Orchestrator  |
+|   4 | Phạm Trường Chinh | 2A202603426 | phemchinh1708@gmail.com | khoaitay51 | Người 4 (Durability + Eval) |
 
 
 Gợi ý chia vai:
@@ -30,6 +31,7 @@ Gợi ý chia vai:
 | Nguyễn Văn Huy | Người 2 (Single ReAct) | Cài đặt Shape B (single.py) | src/tests/test_single_extra.py |
 | Nguyễn Minh Quân | Người 1 (Workflow) | Cài đặt Shape A (workflow.py) | src/tests/test_workflow_extra.py |
 | Nguyen Thanh Tung | orchestrator + handoff | `79ba5a9` | `src/tests/test_orchestrator_extra.py` (16 tests), `src/tests/test_public_matrix.py` (62/62 `orchestrator`) |
+| Phạm Trường Chinh | Người 4 (Durability + Eval) | `1e0caa8`, `c2a8edc` | `src/tests/test_durability_eval_extra.py` (43 tests) |
 
 ## Cá nhân
 
