@@ -18,7 +18,27 @@ Nhóm hiểu bài toán thế nào, chia việc ra sao, thứ tự làm bốn sh
 
 Mô tả ba shape nhóm viết (workflow, single, orchestrator): mỗi shape đọc gì, quyết định gì, gọi host ra sao. Chỉ rõ ranh giới code / model (tham khảo [docs/architecture.md](../../docs/architecture.md)), cách handoff được sanitize và trace ghi những event nào.
 
-...
+### Shape A — Workflow (`workflow.py`)
+
+*(TODO: Người 1 bổ sung mô tả Shape A.)*
+
+### Shape B — Single ReAct (`single.py`)
+
+*(TODO: Người 2 bổ sung mô tả Shape B.)*
+
+### Shape C — Orchestrator + Read-only Investigators (`orchestrator.py`)
+
+- **Đọc claim an toàn:** Orchestrator mở kết nối SQLite qua `lab8.db.connect` (đóng trong `finally`) và chỉ đọc claim bằng `get_claim_view(conn, claim_id)` (lấy `claim_id`, `principal_id`, `order_id`, `ticket` — không `SELECT *`, nên không tiếp xúc `parent_secret` hay `raw_headers_json`). Nếu claim không tồn tại → trả `failed` (`unknown_claim`). Nếu `order_id` rỗng/null → trả `needs_info` (`missing_order_id`), không trích mã đơn từ câu chữ trong `ticket`.
+- **Ranh giới code / model và san phẳng dữ liệu (`handoff.v1`):**
+  - Orchestrator gọi `MockLLM` (`complete(..., purpose="plan", ...)` và `purpose="draft"`) để mô phỏng lập kế hoạch và soạn câu trả lời; model **không** tính tiền, **không** tạo approval và **không** được cấp quyền ghi ledger.
+  - Gói handoff gửi cho investigator được tạo bằng `lab8.handoff.make_handoff(...)` với `request_id=f"REQ-{claim_id}-s{seed}"`, `facts={}` và danh sách tool chỉ đọc `allowed_tools=["lookup_order", "lookup_policy", "lookup_refund_history"]`. Hàm `make_handoff` / `sanitize` lọc cứng theo allowlist `ALLOWED_FIELDS`, ép `principal_scope="owner_order_only"`, từ chối `WRITE_TOOLS` (`issue_refund`, `append_audit`) và ném `HandoffError` nếu phát hiện `CANARY_SECRET_`, `parent_secret`, `raw_headers`.
+  - `run_readonly_investigators(conn, budget, handoff, principal_id=...)` thực thi các tool với `worker=True`. Kết quả `lookup_order` chỉ trả các trường trong `ORDER_FIELDS` (`order_id`, `status`, `delay_days`, `shipping_fee_vnd`, `paid_vnd`, `damage_verified`, `carrier`), ẩn hoàn toàn `phone`, `address`, `internal_note`, `item_name`. Nếu `visible=False` (`not_found` hoặc `outside_principal_scope`) → trả `escalated`.
+- **Tính quote, gọi host & durability:**
+  - Orchestrator tự tính quote từ `order_view["order"]` có cấu trúc qua `compute_compensation(conn, order)` (bỏ qua mọi số ngày trễ hay câu injection trong `ticket`).
+  - Nếu `proposal <= 0` → trả `denied` (`proposal_amount=0`), không gọi `issue_refund`.
+  - Nếu `proposal > 0` → gọi `durability.issue_refund(conn, claim_id, proposal, crash_at=crash_at)` với **quote đầy đủ** (không tự trừ khoản đã hoàn trước đó để host tự thực hiện trần theo đơn ở T13/T14). Khi gặp `InjectedCrash`, shape ghi event `crash`, flush trace rồi `raise` tiếp (không nuốt exception, đảm bảo T12). Host trả `ok=True` → `resolved`; `ok=False` + `conflict=True` → `failed`; `ok=False` + `conflict=False` → `denied` (vẫn giữ `proposal_amount` là full quote). Mọi nhánh trả về đều dùng `lab8.shapes.common.finish()`.
+- **Cấu trúc trace của Shape C (`traces/R-orchestrator-<claim_id>-s<seed>.json`):**
+  - Ghi theo thứ tự thực thi qua `lab8.trace.Trace`: `plan` (`claim_id`, `has_order_id`), `handoff` (gói `handoff.v1` đã sanitize), `investigator` (`claim_view` rút gọn, `lookup_order` đã lọc `ORDER_FIELDS`, `policy_count`, `refund_history`), `quote` (`amount_vnd`, `reason`, `clause_ids`, `parts`), và nhánh kết thúc (`decision` / `host_outcome` / `crash` / `error`). Tuyệt đối không ghi raw `ticket`, `parent_secret`, `raw_headers_json`, `phone`, `address`, `internal_note` hay `item_name`.
 
 ## 4. Kết quả
 
