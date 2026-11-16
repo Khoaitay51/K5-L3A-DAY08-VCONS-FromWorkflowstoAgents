@@ -2,7 +2,7 @@
 
 ## Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: VCONS
 - Lớp: L3A
 - Repo nhóm: `K5-L3A-DAY08-TenNhom-FromWorkflowsToAgents` (xem [SUBMISSION.md](SUBMISSION.md))
 - URL repo, nhánh nộp, commit chốt:
@@ -11,7 +11,7 @@
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 |        |      |       |        |         |
+|   1 | Nguyễn Minh Quân | 2A202603510 | 26ai.quannm7@vinuni.edu.vn | minhquan2955 | Shape A - Workflow |
 |   2 | Nguyễn Văn Huy | 2A202603432 | huy.nv2a@vinuni.edu.vn | Khoaitay51 | Người 2 (Shape B — Single ReAct) |
 
 Gợi ý chia vai:
