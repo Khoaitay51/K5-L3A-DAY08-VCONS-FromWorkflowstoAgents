@@ -5,7 +5,7 @@
 - Họ tên: Nguyễn Văn Huy
 - MSSV: 2A202603432
 - Email: huy.nv2a@vinuni.edu.vn
-- GitHub: Khoaitay51
+- GitHub: nvh-03
 - Vai trò: Người 2 (Shape B — Single ReAct Agent)
 
 ## 2. Phần việc phụ trách
