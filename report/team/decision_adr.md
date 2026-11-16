@@ -3,12 +3,12 @@
 Nhóm chúng tôi chọn Workflow cho bài toán xử lý claim của LogiX-VN. Quyết định dựa trên kết quả trong `src/reports/benchmark.json` và `src/reports/crash.json`.
 
 - Shape chọn: workflow
-- Commit hash: 4f88983 (phiên bản mã nguồn tham chiếu)
+- Commit hash: 231ec5d (phiên bản mã nguồn được đánh giá)
 - Run id dẫn chứng: R-workflow-C-001-s11 (src/reports/benchmark.json)
 - Pass rate / pass^5 / seed min-max / variance: 1.000 / 1.000 / 1.000–1.000 / 0.000 (70 trial public)
 - Cost per success (mô phỏng, VND): 34.29 (src/reports/benchmark.json)
 - Crash safety: 20/20 (src/reports/crash.json; suite host, không phải 20 kịch bản riêng của workflow)
-- Secret leak / approval bypass: chưa có kết quả grader hidden; chưa thể kết luận số lượng
+- Secret leak / approval bypass: tự kiểm hidden không nhãn: 0 trial nghi lộ secret trên Workflow; approval bypass chưa có kết quả grader chính thức
 
 ## Vì sao shape này
 
@@ -24,4 +24,4 @@ Workflow ghi trạng thái tra cứu đơn, quote và quyết định; không gh
 
 ## Giới hạn
 
-MockLLM không phải model sản xuất; chi phí là mô phỏng, latency `unavailable`. Bộ public chỉ có 14 claim và năm seed. Báo cáo chưa có kết quả hidden cho pass rate, secret leak hay approval bypass.
+MockLLM không phải model sản xuất; chi phí là mô phỏng, latency `unavailable`. Bộ public chỉ có 14 claim và năm seed. Tự kiểm hidden không nhãn không đo được pass rate hay approval bypass; kết quả quét nghi lộ không thay thế kết quả grader chính thức.

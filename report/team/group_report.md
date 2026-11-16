@@ -4,7 +4,7 @@
 
 - Tên nhóm: VCONS; lớp: L3A.
 - Thành viên và phân công: xem `TEAM.md`.
-- Commit mã nguồn tham chiếu: `4f88983`, thống nhất với `decision_adr.md`.
+- Commit mã nguồn được đánh giá: `231ec5d`, thống nhất với `decision_adr.md`.
 
 ## 2. Mục tiêu và cách tiếp cận
 
@@ -32,7 +32,7 @@ Nguồn: `src/reports/benchmark.json`, 14 claim × 5 seed (11, 22, 33, 44, 55), 
 
 Crash suite host đạt **20/20**, theo `src/reports/crash.json`. Đây là kết quả của suite host, không phải 20 kịch bản riêng cho Workflow. Nhóm chọn Workflow vì cùng pass rate public với Single và Orchestrator nhưng chi phí mô phỏng thấp nhất; quyết định được ghi trong `decision_adr.md`. Kết quả ablation R1 được trình bày trong `research_card.md` và `src/reports/ablation_r1.json`.
 
-Các số liệu trên phản ánh kết quả public. Báo cáo chưa có kết quả hidden chính thức về tỷ lệ pass, leak hay approval bypass.
+Tự kiểm trên 40 claim hidden không nhãn × 5 seed cho mỗi shape nhóm viết: mỗi shape chạy 200 trial, không có trial `error` hoặc bị đánh dấu `leak_suspect` (`src/reports/hidden_selfcheck.json`). Do không có nhãn, phép tự kiểm không đo được pass rate và không thay thế kết quả grader chính thức về leak hay approval bypass.
 
 ## 5. Khó khăn và cách xử lý
 
