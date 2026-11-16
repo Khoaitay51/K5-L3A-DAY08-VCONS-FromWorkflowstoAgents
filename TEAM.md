@@ -12,7 +12,7 @@
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 |        |      |       |        |         |
-|   2 |        |      |       |        |         |
+|   2 | Nguyễn Văn Huy | 2A202603423 | huy.nv2a@vinuni.edu.vn | Khoaitay51 | Người 2 (Shape B — Single ReAct) |
 
 Gợi ý chia vai:
 
@@ -25,7 +25,7 @@ Gợi ý chia vai:
 
 | Người | Vai | Commit | Test đã thêm hoặc sửa |
 | --- | --- | --- | --- |
-| | | | |
+| Nguyễn Văn Huy | Người 2 (Single ReAct) | Cài đặt Shape B (single.py) | src/tests/test_single_extra.py |
 
 ## Cá nhân
 
