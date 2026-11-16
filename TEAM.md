@@ -12,7 +12,7 @@
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 |        |      |       |        |         |
-|   2 | Nguyễn Văn Huy | 2A202603423 | huy.nv2a@vinuni.edu.vn | Khoaitay51 | Người 2 (Shape B — Single ReAct) |
+|   2 | Nguyễn Văn Huy | 2A202603432 | huy.nv2a@vinuni.edu.vn | Khoaitay51 | Người 2 (Shape B — Single ReAct) |
 
 Gợi ý chia vai:
 
