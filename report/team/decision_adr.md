@@ -1,38 +1,27 @@
-# Decision record
+﻿# Decision record
 
-Điền sau dấu `:` trên cùng dòng, không xóa nhãn. Giảng viên và `python -m lab8.check_submission` (chạy trong `src/`) đọc các dòng này bằng máy. Không đổi tên hay dời file này khỏi `report/team/`.
-`Shape chọn` phải là đúng một trong: `workflow`, `single`, `orchestrator`, `swarm`. Đây là shape được chấm cổng hidden.
+Nhóm chúng tôi chọn Workflow cho bài toán xử lý claim của LogiX-VN. Quyết định dựa trên kết quả trong `src/reports/benchmark.json` và `src/reports/crash.json`.
 
-- Shape chọn:
-- Commit hash:
-- Run id dẫn chứng:
-- Pass rate / pass^5 / seed min-max / variance:
-- Cost per success (mô phỏng, VND):
-- Crash safety:
-- Secret leak / approval bypass:
-
-Ví dụ một dòng đã điền: `- Shape chọn: workflow`, `- Crash safety: 20/20 (src/reports/crash.json)`.
+- Shape chọn: workflow
+- Commit hash: 4f88983 (phiên bản mã nguồn tham chiếu)
+- Run id dẫn chứng: R-workflow-C-001-s11 (src/reports/benchmark.json)
+- Pass rate / pass^5 / seed min-max / variance: 1.000 / 1.000 / 1.000–1.000 / 0.000 (70 trial public)
+- Cost per success (mô phỏng, VND): 34.29 (src/reports/benchmark.json)
+- Crash safety: 20/20 (src/reports/crash.json; suite host, không phải 20 kịch bản riêng của workflow)
+- Secret leak / approval bypass: chưa có kết quả grader hidden; chưa thể kết luận số lượng
 
 ## Vì sao shape này
 
-Viết 1 đoạn. So cùng corpus và cùng seed, không so với một lần chạy lẻ.
+Nhóm chọn workflow vì trên cùng 14 claim public và năm seed, workflow, single và orchestrator đều đạt 70/70; workflow có cost/success mô phỏng 34.29 VND, thấp hơn single 39.07 và orchestrator 57.45. Swarm đạt 69/70. Với luồng xử lý tuần tự và luật tính tiền xác định, workflow đáp ứng yêu cầu mà không cần thêm lời gọi model. Kết luận này giới hạn trong tập thử public và môi trường mô phỏng của lab.
 
 ## Có đáng đổi lấy multi-agent không
 
-Nếu pass nhỉnh hơn mà cost và variance cao hơn, nhóm giữ hay đổi? Điều kiện nào làm quyết định đảo lại?
+Với dữ liệu public hiện có, orchestrator chưa tăng pass rate so với workflow và có chi phí mô phỏng cao hơn, nên nhóm giữ Workflow. Quyết định có thể thay đổi khi bài toán có nhiều nguồn tra cứu độc lập, yêu cầu tách quyền hoặc dữ liệu mới cho thấy multi-agent cải thiện chất lượng đủ để bù chi phí. So sánh các shape đồng thời thay đổi nhiều thành phần, nên nhóm không quy toàn bộ chênh lệch cho topology.
 
 ## Trace và bằng chứng
 
-- **Các event được ghi trong trace:**
-  - Với Shape C (`orchestrator`), mọi lần chạy (kể cả các nhánh return sớm `needs_info`, `escalated`, `denied`, `failed` và nhánh `InjectedCrash`) đều xuất file JSON tại `traces/R-orchestrator-<claim_id>-s<seed>.json` qua `lab8.trace.Trace` và `common.finish()` (nhánh crash gọi `trace.write()` trước khi `raise`). Các event ghi lại gồm: `plan` (`claim_id`, `has_order_id`), `handoff` (gói `handoff.v1` đã qua `make_handoff`/`sanitize`), `investigator` (`claim_view` rút gọn chỉ có `found`/`claim_id`/`order_id`, `lookup_order` theo `ORDER_FIELDS`, `policy_count`, `refund_history`), `quote` (`amount_vnd`, `reason`, `clause_ids`, `parts`), cùng các event kết thúc `decision`, `host_outcome`, `crash` hoặc `error`.
-  - *(Ghi chú: Người 1 và Người 2 có thể bổ sung thêm danh sách event tương ứng của `workflow` và `single` nếu có khác biệt.)*
-- **Các field cố ý KHÔNG ghi và lý do:**
-  - Cố ý **không** đọc/không ghi `parent_secret`, `raw_headers_json` (chứa `Authorization: Bearer CANARY_SECRET_*`), không ghi raw claim row hay raw order row (`phone`, `address`, `internal_note`, `item_name`), và không ghi nội dung thô của `ticket` vào trace.
-  - Ở biên handoff của `orchestrator`, `make_handoff` lọc theo `ALLOWED_FIELDS`, giữ `facts={}`, ép `principal_scope="owner_order_only"`, và từ chối `WRITE_TOOLS` (`issue_refund`, `append_audit`). Lý do: trace và handoff là một phần của ranh giới bảo mật; không dùng tóm tắt bằng LLM làm redaction vì LLM không đảm bảo loại bỏ triệt để secret/PII.
-- **Cách chứng minh không lộ secret nếu trace nằm ngoài vùng scanner mặc định:**
-  1. **Tuân thủ Trace contract v1 (fail-closed):** Mọi file phụ do shape ghi ra (nếu có) đều phải đặt cùng thư mục với `RunResult.trace_path` và có tiền tố `<run_id>*` để `lab8.metrics.trace_files()` / `artifact_blob()` gom đủ khi quét, đồng thời không `print` dữ liệu nhạy cảm ra `stdout`. Theo cơ chế fail-closed của grader (`missing_trace`, `stale_trace`, `invalid_trace`, `trace_run_id_mismatch`), bất kỳ log nào nằm ngoài vùng scanner đọc được hoặc sai format đều bị coi là rủi ro rò rỉ và fail ngay lập tức.
-  2. **Kiểm chứng ở tầng code và test tự động:** Chứng minh bằng cấu trúc truy vấn/allowlist từ gốc (`get_claim_view`, `lookup_order`, `make_handoff` chặn `CANARY_SECRET_`/`parent_secret`/`raw_headers` tại nguồn) kết hợp bộ test trong `src/tests/test_orchestrator_extra.py` kiểm tra toàn bộ nhánh thoát (`resolved`, `denied`, `needs_info`, `escalated`, `failed`, `crash`) qua `check_trace` và `artifact_blob` để xác nhận không chứa canary secret hay PII.
+Workflow ghi trạng thái tra cứu đơn, quote và quyết định; không ghi ticket hay nguyên bản claim/order vào trace. Orchestrator ghi handoff đã lọc theo allowlist và kết quả investigator được giới hạn. Nhóm sử dụng trace được ghi trong lần chạy, đúng run ID và nằm ở nơi scanner có thể đọc. Kết quả scanner chỉ bao phủ các file được quét, không chứng minh tính an toàn của log ngoài phạm vi đó.
 
 ## Giới hạn
 
-MockLLM không phải model sản xuất. Latency để `unavailable`. Không sửa JSON cho đủ 0.75.
+MockLLM không phải model sản xuất; chi phí là mô phỏng, latency `unavailable`. Bộ public chỉ có 14 claim và năm seed. Báo cáo chưa có kết quả hidden cho pass rate, secret leak hay approval bypass.

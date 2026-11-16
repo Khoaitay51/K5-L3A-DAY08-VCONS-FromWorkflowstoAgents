@@ -1,69 +1,53 @@
-# Báo cáo nhóm — Lab 8 LogiX-VN
-
-Tối đa 5 trang ngoài phụ lục. Số liệu lấy từ file trong `src/reports/`, không chép tay từ terminal.
+﻿# Báo cáo nhóm — Lab 8 LogiX-VN
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
-- Thành viên: xem `TEAM.md`
-- Commit chốt (trùng `report/team/decision_adr.md`):
+- Tên nhóm: VCONS; lớp: L3A.
+- Thành viên và phân công: xem `TEAM.md`.
+- Commit mã nguồn tham chiếu: `4f88983`, thống nhất với `decision_adr.md`.
 
 ## 2. Mục tiêu và cách tiếp cận
 
-Nhóm hiểu bài toán thế nào, chia việc ra sao, thứ tự làm bốn shape.
-
-...
+Nhóm chúng tôi xây dựng ba cách xử lý claim cùng contract `run_claim`, so sánh với swarm tham chiếu trên cùng dữ liệu public và seed. Nhóm chia công việc thành Workflow, Single ReAct, Orchestrator và Durability/Eval; tập trung kiểm tra tính đúng của số tiền, approval, trace và khả năng chạy lại sau crash.
 
 ## 3. Giải pháp
 
-Mô tả ba shape nhóm viết (workflow, single, orchestrator): mỗi shape đọc gì, quyết định gì, gọi host ra sao. Chỉ rõ ranh giới code / model (tham khảo [docs/architecture.md](../../docs/architecture.md)), cách handoff được sanitize và trace ghi những event nào.
+- **Workflow:** đọc claim và đơn theo phạm vi principal, tính quote từ đơn và policy bằng code. Thiếu mã đơn trả `needs_info`, đơn không nhìn thấy trả `escalated`, quote bằng 0 trả `denied`. Với quote dương, host kiểm tra và ghi refund. Ticket không quyết định số tiền.
+- **Single ReAct:** dùng vòng ReAct và MockLLM để chọn các công cụ đọc trong giới hạn bước. Code tính quote; host xử lý quyết định ghi refund và approval.
+- **Orchestrator:** tạo handoff theo allowlist cho investigator dùng các công cụ chỉ đọc; orchestrator tính quote và gọi host. Handoff và trace không mang toàn bộ parent context.
+- **Swarm tham chiếu:** nhiều peer gọi model; ở seed 55 có điểm yếu cố ý tin số ngày trễ trong ticket thay vì dữ liệu đơn.
 
-### Shape A — Workflow (`workflow.py`)
-
-*(TODO: Người 1 bổ sung mô tả Shape A.)*
-
-### Shape B — Single ReAct (`single.py`)
-
-*(TODO: Người 2 bổ sung mô tả Shape B.)*
-
-### Shape C — Orchestrator + Read-only Investigators (`orchestrator.py`)
-
-- **Đọc claim an toàn:** Orchestrator mở kết nối SQLite qua `lab8.db.connect` (đóng trong `finally`) và chỉ đọc claim bằng `get_claim_view(conn, claim_id)` (lấy `claim_id`, `principal_id`, `order_id`, `ticket` — không `SELECT *`, nên không tiếp xúc `parent_secret` hay `raw_headers_json`). Nếu claim không tồn tại → trả `failed` (`unknown_claim`). Nếu `order_id` rỗng/null → trả `needs_info` (`missing_order_id`), không trích mã đơn từ câu chữ trong `ticket`.
-- **Ranh giới code / model và san phẳng dữ liệu (`handoff.v1`):**
-  - Orchestrator gọi `MockLLM` (`complete(..., purpose="plan", ...)` và `purpose="draft"`) để mô phỏng lập kế hoạch và soạn câu trả lời; model **không** tính tiền, **không** tạo approval và **không** được cấp quyền ghi ledger.
-  - Gói handoff gửi cho investigator được tạo bằng `lab8.handoff.make_handoff(...)` với `request_id=f"REQ-{claim_id}-s{seed}"`, `facts={}` và danh sách tool chỉ đọc `allowed_tools=["lookup_order", "lookup_policy", "lookup_refund_history"]`. Hàm `make_handoff` / `sanitize` lọc cứng theo allowlist `ALLOWED_FIELDS`, ép `principal_scope="owner_order_only"`, từ chối `WRITE_TOOLS` (`issue_refund`, `append_audit`) và ném `HandoffError` nếu phát hiện `CANARY_SECRET_`, `parent_secret`, `raw_headers`.
-  - `run_readonly_investigators(conn, budget, handoff, principal_id=...)` thực thi các tool với `worker=True`. Kết quả `lookup_order` chỉ trả các trường trong `ORDER_FIELDS` (`order_id`, `status`, `delay_days`, `shipping_fee_vnd`, `paid_vnd`, `damage_verified`, `carrier`), ẩn hoàn toàn `phone`, `address`, `internal_note`, `item_name`. Nếu `visible=False` (`not_found` hoặc `outside_principal_scope`) → trả `escalated`.
-- **Tính quote, gọi host & durability:**
-  - Orchestrator tự tính quote từ `order_view["order"]` có cấu trúc qua `compute_compensation(conn, order)` (bỏ qua mọi số ngày trễ hay câu injection trong `ticket`).
-  - Nếu `proposal <= 0` → trả `denied` (`proposal_amount=0`), không gọi `issue_refund`.
-  - Nếu `proposal > 0` → gọi `durability.issue_refund(conn, claim_id, proposal, crash_at=crash_at)` với **quote đầy đủ** (không tự trừ khoản đã hoàn trước đó để host tự thực hiện trần theo đơn ở T13/T14). Khi gặp `InjectedCrash`, shape ghi event `crash`, flush trace rồi `raise` tiếp (không nuốt exception, đảm bảo T12). Host trả `ok=True` → `resolved`; `ok=False` + `conflict=True` → `failed`; `ok=False` + `conflict=False` → `denied` (vẫn giữ `proposal_amount` là full quote). Mọi nhánh trả về đều dùng `lab8.shapes.common.finish()`.
-- **Cấu trúc trace của Shape C (`traces/R-orchestrator-<claim_id>-s<seed>.json`):**
-  - Ghi theo thứ tự thực thi qua `lab8.trace.Trace`: `plan` (`claim_id`, `has_order_id`), `handoff` (gói `handoff.v1` đã sanitize), `investigator` (`claim_view` rút gọn, `lookup_order` đã lọc `ORDER_FIELDS`, `policy_count`, `refund_history`), `quote` (`amount_vnd`, `reason`, `clause_ids`, `parts`), và nhánh kết thúc (`decision` / `host_outcome` / `crash` / `error`). Tuyệt đối không ghi raw `ticket`, `parent_secret`, `raw_headers_json`, `phone`, `address`, `internal_note` hay `item_name`.
+Cả ba shape nhóm viết chuyển **quote đầy đủ** cho `issue_refund`: host kiểm tra approval và trừ khoản đã hoàn theo đơn. Host dùng ledger và audit để bảo vệ idempotency. Workflow ghi trace gồm trạng thái tra cứu, quote và quyết định; orchestrator ghi handoff đã lọc và thông tin investigator được giới hạn.
 
 ## 4. Kết quả
 
-Bảng so sánh 4 shape trên bộ public (từ `src/reports/benchmark.json`): pass rate, pass^5, seed min–max, variance, cost/success, mean/p95 steps. Kèm crash safety (`src/reports/crash.json`) và, nếu có, kết quả tự kiểm trên `student_drop/`.
+Nguồn: `src/reports/benchmark.json`, 14 claim × 5 seed (11, 22, 33, 44, 55), DB mới cho từng trial, MockLLM và bảng giá mô phỏng. Pass^5 là metric trong report; không suy diễn thành bảo đảm cho dữ liệu khác.
 
-...
+| Shape | Pass rate | Pass^5 | Seed min–max | Variance | Cost/success (VND mô phỏng) | Steps mean / p95 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Workflow | 1.000 | 1.000 | 1.000–1.000 | 0 | 34.29 | 2.79 / 3 |
+| Single | 1.000 | 1.000 | 1.000–1.000 | 0 | 39.07 | 5.43 / 6 |
+| Orchestrator | 1.000 | 1.000 | 1.000–1.000 | 0 | 57.45 | 4.71 / 5 |
+| Swarm | 0.986 | 0.929 | 0.929–1.000 | 0.000816 | 49.57 | 2.80 / 3 |
 
-Quyết định kiến trúc và lý do: xem `report/team/decision_adr.md`. Phiếu nghiên cứu và ablation: xem `report/team/research_card.md`.
+Crash suite host đạt **20/20**, theo `src/reports/crash.json`. Đây là kết quả của suite host, không phải 20 kịch bản riêng cho Workflow. Nhóm chọn Workflow vì cùng pass rate public với Single và Orchestrator nhưng chi phí mô phỏng thấp nhất; quyết định được ghi trong `decision_adr.md`. Kết quả ablation R1 được trình bày trong `research_card.md` và `src/reports/ablation_r1.json`.
+
+Các số liệu trên phản ánh kết quả public. Báo cáo chưa có kết quả hidden chính thức về tỷ lệ pass, leak hay approval bypass.
 
 ## 5. Khó khăn và cách xử lý
 
-Lỗi gặp phải (kèm lệnh, output hoặc ảnh chụp) và cách nhóm xử lý.
-
-...
+Ticket có thể đưa số ngày trễ sai: Workflow dùng dữ liệu đơn thay vì tin ticket. Với đơn đã hoàn một phần, shape phải truyền full quote để host tự trừ; nếu tự trừ trước, host sẽ trừ lần nữa. Crash giữa effect và checkpoint được xử lý bằng ledger và idempotency thay vì chỉ dựa vào checkpoint. Trace và handoff phải giới hạn field để tránh lộ dữ liệu nhạy cảm.
 
 ## 6. Tổng hợp đóng góp
 
-Chi tiết đóng góp của từng thành viên nằm trong `TEAM.md` (bảng đóng góp) và báo cáo cá nhân `report/team/MSSV_HoTen.md`.
+Nguyễn Minh Quân phụ trách Workflow; Nguyễn Văn Huy phụ trách Single ReAct; Nguyễn Thanh Tùng phụ trách Orchestrator và handoff; Phạm Trường Chinh phụ trách Durability/Eval. Bằng chứng chi tiết và test xem `TEAM.md` cùng báo cáo cá nhân trong `report/team/`.
 
 ## 7. Hạn chế và hướng cải thiện
 
-MockLLM không phải model sản xuất; latency là `unavailable`. Nêu thêm giới hạn của nhóm và điều kiện làm kết luận thay đổi.
-
-...
+Bộ public nhỏ và không đại diện đầy đủ dữ liệu thực. MockLLM không phải model sản xuất, chi phí chỉ là mô phỏng và latency là `unavailable`. So sánh shape không cô lập hoàn toàn topology vì số công cụ và lượt gọi model cũng khác nhau. Hướng phát triển tiếp theo là mở rộng dữ liệu đánh giá và đo trên model thực để xác định liệu lợi ích của multi-agent có bù được chi phí phối hợp hay không.
 
 ## 8. Tài liệu tham khảo
 
-...
+- `docs/business_rules.md`, `docs/contracts.md`, `docs/architecture.md`, `docs/metrics.md`.
+- `src/reports/benchmark.json`, `src/reports/crash.json`, `src/reports/ablation_r1.json`.
+- `report/team/research_card.md`, báo cáo cá nhân và `TEAM.md`.
