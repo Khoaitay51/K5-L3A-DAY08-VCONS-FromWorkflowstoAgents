@@ -1,0 +1,8 @@
+model_plan: 120.0
+model_draft: 110.0
+get_claim_view: 25.0
+lookup_order: 40.0
+lookup_policy: 35.0
+lookup_refund_history: 30.0
+compute_compensation: 15.0
+issue_refund: 50.0

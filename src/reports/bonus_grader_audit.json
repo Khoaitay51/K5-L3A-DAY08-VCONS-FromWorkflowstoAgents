@@ -1,0 +1,137 @@
+{
+  "metadata": {
+    "topic": "B7 · Kiểm toán grader (Grader Audit & Metamorphic Testing)",
+    "sources": [
+      "EMNLP 2026, Rethinking Evaluation of MAS Efficiency",
+      "Chen et al., Metamorphic Testing for Machine Learning & Software Evaluation"
+    ],
+    "evaluated_graders": [
+      "grader_a",
+      "grader_b",
+      "grader_c"
+    ]
+  },
+  "business_rule_relation": {
+    "name": "metamorphic_claim_delay",
+    "result": {
+      "relation": "delay_days_2_vs_3",
+      "qa_amount_vnd": 0,
+      "qa_reason": "no_entitlement",
+      "qb_amount_vnd": 35000,
+      "qb_reason": "entitled",
+      "qb_clause_ids": [
+        "SHIP-LATE-03"
+      ],
+      "status": "PASS"
+    }
+  },
+  "grader_evaluations": {
+    "grader_a": {
+      "infra_error_isolation": {
+        "grader": "grader_a",
+        "a_trials": 12,
+        "b_trials": 16,
+        "a_graded_trials": 12,
+        "b_graded_trials": 12,
+        "a_pass_rate": 0.75,
+        "b_pass_rate": 0.75,
+        "status": "PASS",
+        "defect_note": "None"
+      },
+      "duplicate_invariance": {
+        "grader": "grader_a",
+        "a_pass_rate": 0.75,
+        "b_pass_rate": 0.75,
+        "a_total_cost_vnd": 283.5,
+        "b_total_cost_vnd": 473.0,
+        "cost_ratio": 1.6684303350970018,
+        "a_cost_per_success_vnd": 31.5,
+        "b_cost_per_success_vnd": 26.27777777777778,
+        "status": "FAIL",
+        "defect_note": "Double-counts cost with set(claim_id) dedup loop, distorting total cost and cost/success"
+      },
+      "order_permutation_invariance": {
+        "grader": "grader_a",
+        "orig_total_cost_vnd": 283.5,
+        "rev_total_cost_vnd": 285.0,
+        "orig_pass_rate": 0.75,
+        "rev_pass_rate": 0.75,
+        "status": "FAIL",
+        "defect_note": "Order-dependent cost accumulation due to first-seen claim_id tracking"
+      }
+    },
+    "grader_b": {
+      "infra_error_isolation": {
+        "grader": "grader_b",
+        "a_trials": 12,
+        "b_trials": 16,
+        "a_graded_trials": 12,
+        "b_graded_trials": 12,
+        "a_pass_rate": 0.75,
+        "b_pass_rate": 0.75,
+        "status": "PASS",
+        "defect_note": "None"
+      },
+      "duplicate_invariance": {
+        "grader": "grader_b",
+        "a_pass_rate": 0.75,
+        "b_pass_rate": 0.75,
+        "a_total_cost_vnd": 189.5,
+        "b_total_cost_vnd": 379.0,
+        "cost_ratio": 2.0,
+        "a_cost_per_success_vnd": 21.055555555555557,
+        "b_cost_per_success_vnd": 21.055555555555557,
+        "status": "PASS",
+        "defect_note": "None"
+      },
+      "order_permutation_invariance": {
+        "grader": "grader_b",
+        "orig_total_cost_vnd": 189.5,
+        "rev_total_cost_vnd": 189.5,
+        "orig_pass_rate": 0.75,
+        "rev_pass_rate": 0.75,
+        "status": "PASS",
+        "defect_note": "None"
+      }
+    },
+    "grader_c": {
+      "infra_error_isolation": {
+        "grader": "grader_c",
+        "a_trials": 12,
+        "b_trials": 16,
+        "a_graded_trials": 12,
+        "b_graded_trials": 16,
+        "a_pass_rate": 0.75,
+        "b_pass_rate": 0.5625,
+        "status": "FAIL",
+        "defect_note": "Counts infra_error trials as graded and failed, depressing pass_rate"
+      },
+      "duplicate_invariance": {
+        "grader": "grader_c",
+        "a_pass_rate": 0.75,
+        "b_pass_rate": 0.75,
+        "a_total_cost_vnd": 189.5,
+        "b_total_cost_vnd": 379.0,
+        "cost_ratio": 2.0,
+        "a_cost_per_success_vnd": 21.055555555555557,
+        "b_cost_per_success_vnd": 21.055555555555557,
+        "status": "PASS",
+        "defect_note": "None"
+      },
+      "order_permutation_invariance": {
+        "grader": "grader_c",
+        "orig_total_cost_vnd": 189.5,
+        "rev_total_cost_vnd": 189.5,
+        "orig_pass_rate": 0.75,
+        "rev_pass_rate": 0.75,
+        "status": "PASS",
+        "defect_note": "None"
+      }
+    }
+  },
+  "verdict": {
+    "grader_a": "DEFECTIVE: double-counts cost on first occurrence of claim_id and breaks trial-order invariance",
+    "grader_b": "CORRECT: satisfies all metamorphic relations and preserves invariants",
+    "grader_c": "DEFECTIVE: counts infra_error trials as graded=False, unfairly depressing pass rate"
+  }
+}
